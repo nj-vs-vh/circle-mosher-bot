@@ -94,21 +94,33 @@ async def main() -> None:
         video_note = context.result["video_note"]
         logging.info(f"Downloading video: {video_note.file_id}")
         start = time.time()
-        file_obj = await bot.get_file(file_id=video_note.file_id)
-        file_body = await bot.download_file(file_path=file_obj.file_path)
-        logging.info(f"Saved in {time.time() - start:.3f} sec")
+        try:
+            file_obj = await bot.get_file(file_id=video_note.file_id)
+            file_body = await bot.download_file(file_path=file_obj.file_path)
+            logging.info(f"Saved in {time.time() - start:.3f} sec")
+        except Exception as e:
+            await bot.send_message(
+                context.last_update.from_user.id,
+                "error downloading your video\n\n" + str(e),
+            )
         video_processsing_ctx = VideoProcessingContext(
             video=file_body,
             bot=context.bot,
             user=context.last_update.from_user,
         )
-        match processing:
-            case Processing.AVG:
-                await average(video_processsing_ctx)
-            case Processing.MEDIAN:
-                await median(video_processsing_ctx)
-            case Processing.DATAMOSH_BASIC:
-                await datamosh_basic(video_processsing_ctx)
+        try:
+            match processing:
+                case Processing.AVG:
+                    await average(video_processsing_ctx)
+                case Processing.MEDIAN:
+                    await median(video_processsing_ctx)
+                case Processing.DATAMOSH_BASIC:
+                    await datamosh_basic(video_processsing_ctx)
+        except Exception as e:
+            await bot.send_message(
+                context.last_update.from_user.id,
+                "error processing video\n\n" + str(e),
+            )
 
     menu_handler.setup(bot, on_terminal_menu_option_selected=choose_processing)
     single_video_note_form_handler.setup(
