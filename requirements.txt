@@ -2,3 +2,4 @@ telebot_against_war==0.6.15
 telebot_components==0.12.0
 av==12.1.0
 imageio==2.34.1
+ffmpeg-python==0.2.0

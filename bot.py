@@ -22,19 +22,21 @@ from telebot_components.menu import (
 from telebot_components.redis_utils.emulation import PersistentRedisEmulation
 
 from forms import SingleVideoNoteFieldResult, single_video_note_form
-from processings import VideoProcessingContext, average, median
+from processings import VideoProcessingContext, average, datamosh_basic, median
 
 
 class Processing(enum.StrEnum):
     AVG = enum.auto()
     MEDIAN = enum.auto()
+    DATAMOSH_BASIC = enum.auto()
 
 
 main_menu = Menu(
     text="choose processing type",
     menu_items=[
         MenuItem(label="< average frame >", terminator=Processing.AVG),
-        MenuItem(label="< median frame >", terminator=Processing.MEDIAN),
+        MenuItem(label="median frame", terminator=Processing.MEDIAN),
+        MenuItem(label="datamosh (basic)", terminator=Processing.DATAMOSH_BASIC),
     ],
     config=MenuConfig(
         back_label=None,
@@ -77,7 +79,7 @@ async def main() -> None:
     async def choose_processing(context: TerminatorContext):
         processing = Processing(context.terminator)
         match processing:
-            case Processing.AVG | Processing.MEDIAN:
+            case Processing.AVG | Processing.MEDIAN | Processing.DATAMOSH_BASIC:
                 await single_video_note_form_handler.start(
                     bot=bot,
                     user=context.user,
@@ -105,6 +107,8 @@ async def main() -> None:
                 await average(video_processsing_ctx)
             case Processing.MEDIAN:
                 await median(video_processsing_ctx)
+            case Processing.DATAMOSH_BASIC:
+                await datamosh_basic(video_processsing_ctx)
 
     menu_handler.setup(bot, on_terminal_menu_option_selected=choose_processing)
     single_video_note_form_handler.setup(
