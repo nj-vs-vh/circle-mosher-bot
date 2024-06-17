@@ -3,6 +3,7 @@ import enum
 import logging
 import os
 import time
+from pathlib import Path
 
 from telebot import AsyncTeleBot
 from telebot import types as tg
@@ -23,6 +24,8 @@ from telebot_components.redis_utils.emulation import PersistentRedisEmulation
 
 from forms import SingleVideoNoteFieldResult, single_video_note_form
 from processings import VideoProcessingContext, average, datamosh_basic, median
+
+SCRIPT_DIR = Path(__file__).parent
 
 
 class Processing(enum.StrEnum):
@@ -48,7 +51,7 @@ main_menu = Menu(
 async def main() -> None:
     bot_prefix = "media-proc-bot"
     bot = AsyncTeleBot(os.environ["TOKEN"])
-    redis = PersistentRedisEmulation(dirname=".storage")  # type: ignore
+    redis = PersistentRedisEmulation(dirname=(SCRIPT_DIR / ".storage"))  # type: ignore
 
     menu_handler = MenuHandler(
         name="main-menu",

@@ -21,9 +21,7 @@ class VideoProcessingContext:
 VideoProcessing = Callable[[VideoProcessingContext], Awaitable[None]]
 
 
-def make_frames_to_image_processing(
-    frames_processor: Callable[[np.ndarray], np.ndarray]
-) -> VideoProcessing:
+def make_frames_to_image_processing(frames_processor: Callable[[np.ndarray], np.ndarray]) -> VideoProcessing:
     async def proc(ctx: VideoProcessingContext) -> None:
         frames = iio.imread(ctx.video, plugin="pyav")
         avg_frame = frames_processor(frames)
@@ -49,9 +47,7 @@ async def datamosh_basic(ctx: VideoProcessingContext):
 
         input_avi_bytes: bytes
         input_avi_bytes, _ = (
-            ffmpeg.input(input_temp)
-            .output("pipe:", format="avi")
-            .run(capture_stdout=True, capture_stderr=True)
+            ffmpeg.input(input_temp).output("pipe:", format="avi").run(capture_stdout=True, capture_stderr=True)
         )
 
         output_avi_filename = tempdir / "temp_moshed.avi"
@@ -72,9 +68,9 @@ async def datamosh_basic(ctx: VideoProcessingContext):
                         out_f.write(frame + bytes.fromhex("30306463"))
 
         output_mp4_filename = tempdir / "output.mp4"
-        ffmpeg.input(str(output_avi_filename.absolute())).output(
-            str(output_mp4_filename.absolute())
-        ).run(capture_stderr=True)
+        ffmpeg.input(str(output_avi_filename.absolute())).output(str(output_mp4_filename.absolute())).run(
+            capture_stderr=True
+        )
 
         await ctx.bot.send_video_note(
             chat_id=ctx.user.id,
