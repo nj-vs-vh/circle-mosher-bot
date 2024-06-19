@@ -51,21 +51,17 @@ async def datamosh_basic(ctx: VideoProcessingContext):
         )
 
         output_avi_filename = tempdir / "temp_moshed.avi"
-        AVI_ENDFRAME = bytes.fromhex("30306463")
+        AVI_FRAME_END = bytes.fromhex("30306463")
+        IFRAME_HEADER = bytes.fromhex("0001B0")
         with open(output_avi_filename, "wb") as out_f:
-            frames = input_avi_bytes.split(AVI_ENDFRAME)
-            iframe_header = bytes.fromhex("0001B0")
+            frames = input_avi_bytes.split(AVI_FRAME_END)
             iframe_written = False
             for _, frame in enumerate(frames):
-                if not iframe_written:
-                    out_f.write(frame + AVI_ENDFRAME)
-                    if frame[5:8] == iframe_header:
+                is_iframe = frame[5:8] == IFRAME_HEADER
+                if not is_iframe or not iframe_written:
+                    out_f.write(frame + AVI_FRAME_END)
+                    if is_iframe:
                         iframe_written = True
-                else:
-                    # while we're moshing we're repeating p-frames and multiplying i-frames
-                    if frame[5:8] != iframe_header:
-                        # for i in range(repeat_p_frames):
-                        out_f.write(frame + bytes.fromhex("30306463"))
 
         output_mp4_filename = tempdir / "output.mp4"
         ffmpeg.input(str(output_avi_filename.absolute())).output(str(output_mp4_filename.absolute())).run(
